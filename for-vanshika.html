@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@500&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center;
+            overflow: hidden; font-family: 'Quicksand', sans-serif;
+            background-image: url('images (4).jpeg'); background-size: cover; background-position: center;
+            transition: background-image 0.8s ease;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(8px);
+            padding: 25px 20px; border-radius: 40px; width: 85%; max-width: 340px;
+            text-align: center; box-shadow: 0 15px 35px rgba(214, 51, 132, 0.2);
+            position: relative; z-index: 10;
+        }
+
+        .main-title { font-family: 'Pacifico', cursive; font-size: 24px; color: #d63384; margin-bottom: 5px; line-height: 1.3; }
+        .sub-text { font-family: 'Quicksand', sans-serif; font-size: 14px; color: #ff4d6d; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; }
+        .cursive-title { font-family: 'Dancing Script', cursive; font-size: 28px; color: #d63384; margin-bottom: 10px; }
+
+        /* BUTTONS */
+        .btn-container { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+        .yes-btn { 
+            background: linear-gradient(to right, #ff4d6d, #d63384); 
+            color: white; border: none; width: 85%; padding: 15px; 
+            border-radius: 50px; font-weight: bold; cursor: pointer; 
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            70% { transform: scale(1.05); box-shadow: 0 0 15px rgba(214, 51, 132, 0.4); }
+            100% { transform: scale(1); }
+        }
+        .no-btn { background: #ffe5ec; color: #d63384; border: none; width: 85%; padding: 10px; border-radius: 50px; font-weight: bold; cursor: pointer; }
+
+        /* BLUR ANIMATION */
+        .blur-in { animation: clearUp 2.5s forwards; }
+        @keyframes clearUp { 0% { filter: blur(20px); opacity: 0; } 100% { filter: blur(0px); opacity: 1; } }
+
+        /* FLOATING ELEMENTS */
+        .floating-element {
+            position: fixed; bottom: -50px; z-index: 999;
+            pointer-events: none; animation: floatUp linear forwards;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* LETTER CONTAINER & GLOW */
+        .letter-container {
+            background: #fff5f7; padding: 15px; border-radius: 20px; 
+            border: 2px solid #d63384; max-height: 300px; overflow-y: auto;
+            position: relative; animation: borderGlow 3s infinite alternate;
+        }
+        @keyframes borderGlow {
+            0% { box-shadow: 0 0 5px #ff4d6d; }
+            100% { box-shadow: 0 0 20px #d63384; }
+        }
+
+        /* ENVELOPE (GIFT 2) */
+        .envelope-container { 
+            position: relative; width: 180px; height: 120px; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); 
+            margin: 40px auto; cursor: pointer; border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(214, 51, 132, 0.3); border: 2px solid white;
+        }
+        .envelope-container::after { content: '❤'; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); color: white; font-size: 20px; z-index: 5; }
+        .flap { position: absolute; top: 0; left: 0; width: 0; height: 0; border-left: 90px solid transparent; border-right: 90px solid transparent; border-top: 70px solid #d63384; transform-origin: top; transition: transform 0.6s ease; z-index: 4; }
+        .letter-paper { position: absolute; top: 10px; left: 10px; width: 160px; height: 100px; background: white; border: 1px solid #ddd; z-index: 2; transition: transform 1s ease-in-out, opacity 0.5s; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .envelope-front { position: absolute; bottom: 0; left: 0; width: 180px; height: 70px; background: rgba(255, 154, 158, 0.8); border-top: 1px solid white; z-index: 3; border-radius: 0 0 10px 10px; }
+        .open .flap { transform: rotateX(180deg); z-index: 1; }
+        .open .letter-paper { transform: translateY(-120px) scale(1.8); z-index: 5; opacity: 0; }
+
+        .gift-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .gift-option { background: #ff4d6d; color: white; padding: 15px 5px; border-radius: 20px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-decoration: none; position: relative; overflow: hidden; }
+        .gift-option.full-width { grid-column: span 2; }
+        .photo { width: 100%; border-radius: 20px; margin: 10px 0; border: 3px solid white; }
+        .hidden { display: none !important; }
+    </style>
+
+    <script>
+        let animInterval;
+
+        function startRain(emoji) {
+            clearInterval(animInterval);
+            animInterval = setInterval(() => {
+                const e = document.createElement('div');
+                e.className = 'floating-element';
+                e.innerText = Array.isArray(emoji) ? emoji[Math.floor(Math.random()*emoji.length)] : emoji;
+                e.style.left = Math.random() * 100 + 'vw';
+                e.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                document.body.appendChild(e);
+                setTimeout(() => e.remove(), 4000);
+            }, 200);
+        }
+
+        function stopAnimations() { clearInterval(animInterval); }
+
+        function iSaidYes() {
+            stopAnimations();
+            startRain(['❤️', '💖', '💝', '💕', '💗']);
+            var music = document.getElementById('myMusic');
+            if(music) music.play().catch(e => console.log("Music Ready"));
+            document.body.style.backgroundImage = "url('images (5).jpeg')";
+            goTo('finalPage');
+        }
+
+        function goTo(id) {
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+
+            if (id === 'p5') startRain('😭');
+            else if (id === 'bouquetPage') startRain(['🌸', '🌹', '🌺', '🌷', '🍃']);
+            else if (id === 'letterContentPage') startRain(['✨', '⭐', '🤍', '💖']);
+            else if (id === 'finalPage' || id === 'giftPage') startRain(['❤️', '💖', '💝', '💕', '💗']);
+            else stopAnimations();
+        }
+
+        function triggerLetterAnimation() {
+            document.querySelector('.envelope-container').classList.add('open');
+            setTimeout(() => goTo('letterContentPage'), 1500);
+        }
+    </script>
+</head>
+<body>
+    <audio id="myMusic" loop><source src="music.mp3" type="audio/mpeg"></audio>
+
+    <div id="p1" class="card">
+        <h1 class="main-title">WILL YOU BE<br>MY VALENTINE??</h1>
+        <p class="sub-text">PRETTYYY PLEASEEEEEE</p>
+        <div class="btn-container">
+            <button class="yes-btn" onclick="iSaidYes()">YES! 💖</button>
+            <button class="no-btn" onclick="goTo('p2')">No 💔</button>
+        </div>
+    </div>
+    
+    <div id="p2" class="card hidden">
+        <h1 class="main-title" style="font-size: 20px;">Oh you must've pressed NO accidentally...</h1>
+        <p style="color: #ff4d6d; font-size: 14px;">...like on propose day 😅</p>
+        <div class="btn-container">
+            <button class="yes-btn" onclick="iSaidYes()">YES! 💖</button>
+            <button class="no-btn" onclick="goTo('p3')">No 💔</button>
+        </div>
+    </div>
+
+    <div id="p3" class="card hidden">
+        <h1 class="main-title" style="font-size: 20px;">must've been the wind... ahh no (please say yess..) 🌬️</h1>
+        <div class="btn-container">
+            <button class="yes-btn" onclick="iSaidYes()">YES! 💖</button>
+            <button class="no-btn" onclick="goTo('p4')">No 💔</button>
+        </div>
+    </div>
+
+    <div id="p4" class="card hidden">
+        <h1 class="main-title" style="font-size: 22px;">aight Vanshika that was NOT the wind</h1>
+        <img src="https://i.postimg.cc/7h1R75vC/images-(7).jpg" class="photo blur-in">
+        <div class="btn-container">
+            <button class="yes-btn" onclick="iSaidYes()">Yes! 💖</button>
+            <button class="yes-btn" onclick="iSaidYes()">Yes of course! ✨</button>
+            <button class="no-btn" style="font-size: 10px; width: 50%;" onclick="goTo('p5')">No</button>
+        </div>
+    </div>
+
+    <div id="p5" class="card hidden">
+        <h1 class="main-title" style="font-size: 18px;">PLEASEEEEE MALKIN JI ACCEPT ITTTT...</h1>
+        <p style="color: #ff4d6d; font-size: 14px; font-weight: bold;">even hornet is crying now she wants you to say yes 😭😭</p>
+        <img src="https://i.postimg.cc/d1m783pX/images-(6).jpg" class="photo blur-in">
+        <div class="btn-container">
+            <button class="yes-btn" onclick="iSaidYes()">YES! 💖</button>
+            <button class="yes-btn" onclick="iSaidYes()">Fine, YES! 🎀</button>
+        </div>
+    </div>
+
+    <div id="finalPage" class="card hidden">
+        <h1 class="main-title" style="font-size: 24px;">YAYAYAY THANK YOU FOR SAYING YES</h1>
+        <p style="color: #d63384; font-family: 'Dancing Script'; font-size: 18px; margin-top: -10px;">you bring happiness to my life</p>
+        <button class="yes-btn" style="margin-top:20px" onclick="goTo('giftPage')">🎁 Open Your Gifts 🎁</button>
+        <p style="color: #ff4d6d; font-size: 12px; font-weight: bold; margin-top: 10px;">click above to open the gifts</p>
+    </div>
+
+    <div id="giftPage" class="card hidden">
+        <h1 class="cursive-title">Choose Your Gift</h1>
+        <div class="gift-grid">
+            <div class="gift-option" onclick="goTo('bouquetPage')">💐 <b>Gift 1</b></div>
+            <div class="gift-option" onclick="goTo('mailPage')">💌 <b>Gift 2</b></div>
+            <a href="https://open.spotify.com/playlist/37kjOQrnfZGkIbwOWjfF5H?si=bOLYAifTTqOXicjE_yRMkg" target="_blank" class="gift-option full-width">🎵 <b>Gift 3:  Playlist for you</b></a>
+        </div>
+    </div>
+
+    <div id="bouquetPage" class="card hidden">
+        <h1 class="cursive-title">here's bouquet for you vanshika</h1>
+        <img src="https://i.postimg.cc/T1Wfx4GV/shopping.webp" style="width: 60%;" class="photo">
+        <p style="font-style: italic; color: #d63384; font-size: 14px; line-height: 1.4;">
+            "Like the fragrant flowers blooming with dignity,<br>
+            my love for you grows with every heartbeat.<br>
+            A bouquet as beautiful as your soul."
+        </p>
+        <button class="no-btn" onclick="goTo('giftPage')">Back</button>
+    </div>
+
+    <div id="mailPage" class="card hidden">
+        <h1 class="cursive-title">Tap the mail to open it</h1>
+        <div class="envelope-container" onclick="triggerLetterAnimation()">
+            <div class="flap"></div>
+            <div class="letter-paper">📩 Opening...</div>
+            <div class="envelope-front"></div>
+        </div>
+    </div>
+
+    <div id="letterContentPage" class="card hidden">
+        <h1 class="cursive-title">My Dearest Vanshika...</h1>
+        <div class="letter-container">
+            <p style="font-family: 'Dancing Script'; font-size: 20px; color: #ff0f53; text-align: left; line-height: 1.5; margin: 0;">
+                i love you my dearest vanshika you mean alot to me you are the best thing that has ever happened to me and you make me really really happy,your existence in my life means alot to me. Just by you being yourself it makes me really really happy i love spending my days with you my time you,you're the best girl I've ever met and i care about you alottt thank you for spending a time with someone who's just a nobody like me who isn't good at anything but i promise you I'm always here for you I'm always here to listen to you I'm always here supporting you I'm always rooting for you 🫶🏻 your voice is music to my ears they bless my ears it's as if it's angels themselves playing harp,your eyes are so pretty that everytime I'm looking at them the world softens the time stops and the only vibes i get from them is the warmth and peacefulness, you're the most prettiestttt girl I've ever seen 🫶🏻never ever give up I'm always with you and i love you with all my heart i am always proud of you i may not be enough i may not be rich but i promise you i'll do my best i will do every efforts i possibly can just to see you happy and smiling no matter what happens I'm always here for you even if you need me or not i love everytime you're so sleepy and all you could ever think of is brownies haha i swear to god you're so cuteee whenever you say whatever comes to your mind i really love when you're being you it's just sooo cute i love whenever you're talking so much like goshhh i can listen to you all dayyyy,my days begins with you being the very first thought and nights end with you being my last thought,thank you for saving me from the situations where my brain was numb and probably drowned in the most absurd thoughts of all time i promise you that even if I cannot treat you how you want to be treated.. i'll do my best to treat you atleast in such possible way which will bring smile to your face because your happiness lights up my day everytime i see you being happy excited it makes me happy 🫶🏻 and i'll do my best to bring the smile on you face'
+                <br><br><b>Sincerely<br>Your dante</b>
+            </p>
+        </div>
+        <button class="no-btn" style="margin-top:10px;" onclick="goTo('giftPage')">Back</button>
+    </div>
+</body>
+</html>
